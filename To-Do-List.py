@@ -1,5 +1,5 @@
 # import os
-# os.remove("todo.db")
+# os.remove("todo.db") # used to remove the todo.db for testing purpose
 
 
 from sqlalchemy import create_engine
@@ -7,7 +7,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Date
 from datetime import datetime, timedelta
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import desc, asc
 
 engine = create_engine('sqlite:///todo.db?check_same_thread=False')
 Base = declarative_base()
@@ -29,44 +28,10 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-# new_row = Table(task='This is nothing!',
-#                 deadline=datetime.strptime('01-24-2020', '%m-%d-%Y').date())
-# session.add(new_row)
-# session.commit()
-
-# rows = session.query(Table).all()
-
-# print(len(rows))
-# first_row = rows[0]  # In case rows list is not empty
-
-# print(first_row.task)  # Will print value of the string_field
-# print(first_row.id)  # Will print the id of the row.
-# print(first_row)  # Will print the string that was returned by __repr__ method
-
-# datetime.today()  # return current date and time.
-# datetime.today().date()  # current date without time
-# datetime.today().time()  # current time without date
-#
-# datetime.strptime(date_string, format)  # return a datetime corresponding to date_string, parsed according to format.
-# # Format example: '%Y-%m-%d' - '2020-04-24'
-#
-# today = datetime.today()
-# today.day  # the day of a current month.
-# today.strftime('%b')  # the short name of the current month. I.e 'Apr'
-# today.weekday()  # return the day of the week as an integer, where Monday is 0 and Sunday is 6.
-#
-# yesterday = today - timedelta(
-#     days=1)  # a timedelta object represents a duration, the difference between two dates or times.
-# day_after_tomorrow = today + timedelta(days=2)
-#
-# from datetime import datetime
-#
-# today = datetime.today()
-# rows = session.query(Table).filter(Table.date == today).all()
-
 class Menu:
     def __init__(self):
-        self.menu_message = '''1) Today's tasks\n2) Week's tasks\n3) All tasks\n4) Add task\n0) Exit  '''
+        self.menu_message = "1) Today's tasks\n2) Week's tasks\n3) All tasks\n4) Missed tasks" \
+                            "\n5) Add task\n6) Delete task\n0) Exit"
         self.new_task = ""
         self.quick_list = False
         self.today = datetime.today()
@@ -96,8 +61,9 @@ class Menu:
                 count += 1
             print()
 
-    def all_task(self):
-        rows = session.query(Table).order_by(asc(Table.deadline)).all()
+    @staticmethod
+    def all_task():
+        rows = session.query(Table).order_by(Table.deadline).all()
         if len(rows) <= 0:
             print("Nothing to do!")
         else:
@@ -116,6 +82,38 @@ class Menu:
         session.commit()
         print("The task has been added!\n")
 
+    def missed_task(self):
+        rows = session.query(Table).filter(Table.deadline < self.today.date()).order_by(Table.deadline).all()
+        print("Missed tasks:")
+        if len(rows) <= 0:
+            print("Nothing is missed!")
+        else:
+            count = 1
+            for i in range(len(rows)):
+                print(f'{count}. {rows[i].task}. {rows[i].deadline.strftime("%d %b")}')
+                count += 1
+        print()
+
+    @staticmethod
+    def delete_task():
+        rows = session.query(Table).order_by(Table.deadline).all()
+        if len(rows) <= 0:
+            print("Nothing to delete!")
+        else:
+            print("Chose the number of the task you want to delete:")
+            count = 1
+            for i in range(len(rows)):
+                print(f'{count}. {rows[i].task}. {rows[i].deadline.strftime("%d %b")}')
+                count += 1
+        to_delete = int(input())
+        for i in range(len(rows)):
+            if i+1 == to_delete:
+                session.delete(rows[i])
+                break
+        session.commit()
+        print("The task has been deleted!")
+        print()
+
     def exit_list(self):
         print("Bye!")
         self.quick_list = True
@@ -132,7 +130,11 @@ class Menu:
             elif user_choice == '3':
                 self.all_task()
             elif user_choice == '4':
+                self.missed_task()
+            elif user_choice == '5':
                 self.add_task()
+            elif user_choice == '6':
+                self.delete_task()
             elif user_choice == '0':
                 self.exit_list()
 

@@ -1,0 +1,53 @@
+# new_row = Table(task='This is nothing!',
+#                 deadline=datetime.strptime('01-24-2020', '%m-%d-%Y').date())
+# session.add(new_row)
+# session.commit()
+
+# rows = session.query(Table).all()
+
+# print(len(rows))
+# first_row = rows[0]  # In case rows list is not empty
+
+# print(first_row.task)  # Will print value of the string_field
+# print(first_row.id)  # Will print the id of the row.
+# print(first_row)  # Will print the string that was returned by __repr__ method
+
+# datetime.today()  # return current date and time.
+# datetime.today().date()  # current date without time
+# datetime.today().time()  # current time without date
+#
+# datetime.strptime(date_string, format)  # return a datetime corresponding to date_string, parsed according to format.
+# # Format example: '%Y-%m-%d' - '2020-04-24'
+#
+# today = datetime.today()
+# today.day  # the day of a current month.
+# today.strftime('%b')  # the short name of the current month. I.e 'Apr'
+# today.weekday()  # return the day of the week as an integer, where Monday is 0 and Sunday is 6.
+#
+# yesterday = today - timedelta(
+#     days=1)  # a timedelta object represents a duration, the difference between two dates or times.
+# day_after_tomorrow = today + timedelta(days=2)
+#
+# from datetime import datetime
+#
+# today = datetime.today()
+# rows = session.query(Table).filter(Table.date == today).all()
+
+from datetime import datetime
+
+# delete all rows where date column equals today's date
+session.query(Table).filter(Table.date == datetime.today()).delete()
+
+# delete a specific row
+rows = session.query(Table).filter(Table.date < datetime.today()).all()
+specific_row = rows[0] # in case rows is not empty
+session.delete(specific_row)
+
+# don't forget to commit changes
+session.commit()
+
+# select all rows ordered by the date column
+session.query(Table).order_by(Table.date)
+
+# select all rows where string_fields starts with 'L'. The result is ordered by date column
+session.query(Table).filter(Table.string_field.startswith('L'))).order_by(Table.date)
