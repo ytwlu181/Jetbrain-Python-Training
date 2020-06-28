@@ -1,71 +1,74 @@
 # project from https://hyperskill.org/curriculum
+import random
+
+
 class TicTacToe:
+
     def __init__(self):
         # Using a tuple(key) to string(value) dict to represent board
         coordinates = []
         for i in range(3, 0, -1):
             for j in range(3):
-                coordinates.append(( j + 1, i))
+                coordinates.append((j + 1, i))
         board = {}
-        coor_to_index ={}
+        coor_to_index = {}
         for coor in coordinates:
             board[coor] = '_'
         for i, coor in enumerate(coordinates):
             coor_to_index[coor] = i
-        self.O = -1
-        self.X = 1
+        self.status_O = -1
+        self.status_X = 1
         self.board = board
         self.terminate = False
-        self.next_move = 'O'
+        self.human_draw_X = 'X'
+        self.AI_draw_O = 'O'
         self.game_status = [0] * 9
-        self.coor_to_index= coor_to_index
-        self.new_coor_x = 0
-        self.new_coor_y = 0
+        self.coor_to_index = coor_to_index
+        self.human_new_x = 0
+        self.human_new_y = 0
         self.winner = 'none'
         # print(self.board)
 
-    def update_status(self,single_update = False):
+    def intial_and_huamn_update_status(self, single_update=False):
         if single_update:
-            index = self.coor_to_index[(self.new_coor_x,self.new_coor_y)]
-            self.game_status[index] = self.X if self.next_move =='X' else self.O
+            index = self.coor_to_index[(self.human_new_x, self.human_new_y)]
+            self.game_status[index] = self.status_X if self.human_draw_X == 'X' else self.status_O
+
         else:
             for i, key in enumerate(self.board):
-                if(self.board[key] == 'X'):
-                    self.game_status[i] = self.X
-                elif(self.board[key] == 'O'):
-                    self.game_status[i] = self.O
+                if (self.board[key] == 'X'):
+                    self.game_status[i] = self.status_X
+                elif (self.board[key] == 'O'):
+                    self.game_status[i] = self.status_O
 
     def judge_status(self):
         def update_winner(i):
-           if self.game_status[i] == self.X:
-               self.winner = 'X'
-           elif self.game_status[i] == self.O:
-               self.winner = 'O'
+            if self.game_status[i] == self.status_X:
+                self.winner = 'X'
+            elif self.game_status[i] == self.status_O:
+                self.winner = 'O'
 
-        for i in range (3):
-            if self.game_status[i] == self.game_status[i+3] == self.game_status[i+6]:
+        for i in range(3):
+            if self.game_status[i] == self.game_status[i + 3] == self.game_status[i + 6]:
                 update_winner(i)
-                # print('here1')
-        for i in range(0,7,3):
-            if self.game_status[i] == self.game_status[i+1] == self.game_status[i+2]:
+
+        for i in range(0, 7, 3):
+            if self.game_status[i] == self.game_status[i + 1] == self.game_status[i + 2]:
                 update_winner(i)
-                # print(f'here2  {i}')
+
         if self.game_status[0] == self.game_status[4] == self.game_status[8]:
             update_winner(0)
-            # print('here3')
+
         if self.game_status[2] == self.game_status[4] == self.game_status[6]:
             update_winner(2)
-        self.board_display() #TODO should be deleted later
-        # print(self.winner)
-        count= sum([abs(self.game_status[i]) for i in range(9)])
-        if count != 9 and self.winner =='none':
-            print("Game not finished")
-        if count == 9 and self.winner =='none':
+
+        count = sum([abs(self.game_status[i]) for i in range(9)])
+        if count == 9 and self.winner == 'none':
             print("Draw")
-        if self.winner !='none':
+            self.stop_game()
+        if self.winner != 'none':
             print(f'{self.winner} wins')
             self.stop_game()
-
 
     def board_display(self):  # drawing the board with updated board info
         top_low_bound = "-" * 9
@@ -93,57 +96,51 @@ class TicTacToe:
             print("Only input 2 numbers")
             return False
         a, b = user_input.split()
-        self.new_coor_x=int(a)
-        self.new_coor_y=int(b)
+        self.human_new_x = int(a)
+        self.human_new_y = int(b)
         # print(f'x is {self.new_coor_x}, y is{self.new_coor_y}')
-        if self.new_coor_x < 1 or self.new_coor_x > 3 or self.new_coor_y<1 or self.new_coor_y > 3:
+        if self.human_new_x < 1 or self.human_new_x > 3 or self.human_new_y < 1 or self.human_new_y > 3:
             print("Coordinates should be from 1 to 3!")
             return False
 
         return True
 
     def if_coor_exist(self):
-        if self.board[(self.new_coor_x, self.new_coor_y)] != '_':
+        if self.board[(self.human_new_x, self.human_new_y)] != '_':
             print("This cell is occupied! Choose another one!")
             return False
         return True
 
-    def first_map_creation(self, map_setup):
-        count_x, count_o = 0, 0
-        for i, j in zip(range(9), self.board):
-            if map_setup[i] == 'X':
-                self.board[j] = 'X'
-                count_x += 1
-            if map_setup[i] == 'O':
-                self.board[j] = 'O'
-                count_o += 1
-        self.update_status()
-        self.next_move = 'X' if count_x == count_o else 'O'  # if true, then next move should be X
-
-    def update_coor(self, coor):
-        self.board[(self.new_coor_x,self.new_coor_y)] = self.next_move
-        self.update_status(single_update=True)
+    def update_coor_human(self, coor):
+        self.board[(self.human_new_x, self.human_new_y)] = self.human_draw_X
+        self.intial_and_huamn_update_status(single_update=True)
+        self.board_display()
         self.judge_status()
-        self.next_move = 'X' if self.next_move == 'O' else 'O'
 
+    def update_coor_pc(self):
+        indices = [i for i, j in enumerate(self.game_status) if j == 0]
+        AI_new_move = random.choice(indices)
+        self.game_status[AI_new_move] = self.status_O
+        self.board[list(self.board.keys())[AI_new_move]] = self.AI_draw_O
+        print('Making move level "easy"')
+        self.board_display()
+        self.judge_status()
 
     def main_loop(self):
-        map_setup = input("Enter cells: ")
-        self.first_map_creation(map_setup)
+        self.board_display()
         while not self.terminate:
-            # print(self.game_status)
-            self.board_display()
             user_input = input("Enter the coordinates: ")
             while not self.if_format_wrong(user_input) or not self.if_coor_exist():
                 user_input = input("Enter the coordinates: ")
-            self.update_coor(user_input)
+            self.update_coor_human(user_input)
+            if self.terminate == True:
+                break
+            self.update_coor_pc()
 
-            # if (user_input == '0'):
-            self.stop_game()
+
+            if (user_input == '0'):
+                self.stop_game()
 
 
 new_game = TicTacToe()
 new_game.main_loop()
-
-
-
