@@ -51,26 +51,38 @@ class TicTacToe:
             return False
         return True
 
-    def judge_status(self):
+    def judge_status(self,copy_of_board = None):
+        default_input = False
+        winner = None
+        if copy_of_board == None:
+            copy_of_board = self.board
+            default_input = True
         def update_winner(i):
-            if self.board[i] == 1:
-                self.winner =1
-            elif self.board[i] == -1:
-                self.winner = -1
+            winner = None
+            if copy_of_board[i] == 1:
+                winner =1
+            elif copy_of_board[i] == -1:
+                winner = -1
+            return winner
 
-        for i in range(3): #winner in one row
-            if self.board[i] == self.board[i+3] == self.board[i+6]:
-                update_winner(i)
+        for i in range(3): #winner in one column
+            if copy_of_board[i] == copy_of_board[i+3] == copy_of_board[i+6] != 0:
+                print('here')
+                winner = update_winner(i)
 
-        for i in range(0, 7, 3): # winner in one column
-            if self.board[i] == self.board[i + 1] == self.board[i + 2]:
-                update_winner(i)
+        for i in range(0, 7, 3): # winner in one row
+            if copy_of_board[i] == copy_of_board[i + 1] == copy_of_board[i + 2] != 0:
+                winner = update_winner(i)
 
-        if self.board[0] == self.board[4] == self.board[8]: #diagnol
-            update_winner(0)
+        if copy_of_board[0] == copy_of_board[4] == copy_of_board[8] != 0: #diagnol
+            winner = update_winner(0)
 
-        if self.board[2] == self.board[4] == self.board[6]: #diagnol
-            update_winner(2)
+        if copy_of_board[2] == copy_of_board[4] == copy_of_board[6] != 0: #diagnol
+            winner = update_winner(2)
+
+        if default_input:
+            self.winner = winner
+        return winner
 
     def check_winner(self):
         count = sum([abs(self.board[i]) for i in range(9)])
@@ -80,7 +92,6 @@ class TicTacToe:
         if count == 9 and self.winner == None:
             print("Draw")
             self.stop_while()
-
 
     def stop_while(self):
         self.terminate = True
@@ -96,7 +107,40 @@ class TicTacToe:
         while not self.if_format_wrong(user_input):
             user_input = input("Enter the coordinates: ")
 
-    # def
+    # def two_in_a_row(self,indices):
+    def get_board_copy(self):
+        board_copy = []
+        for i in self.board:
+            board_copy.append(i)
+        return board_copy
+
+    def medium_move_decision(self,indices_0):
+        for i in indices_0:
+            board_copy = self.get_board_copy()
+            board_copy[i] = self.next_move
+            winner = self.judge_status(board_copy)
+            if winner == self.next_move:
+                return i
+
+        for i in indices_0:
+            board_copy = self.get_board_copy()
+            board_copy[i] = -self.next_move
+            winner = self.judge_status(board_copy)
+            if winner == -self.next_move:
+                return i
+        return -1
+
+    def medium(self):
+        indices_0 = [i for i, j in enumerate(self.board) if j == 0]
+        AI_new_move = self.medium_move_decision(indices_0)
+        if AI_new_move == -1:
+            AI_new_move = random.choice(indices_0)
+        self.board[AI_new_move] =self.next_move
+        self.next_move = -self.next_move
+        print('Making move level "medium"')
+        self.board_display()
+        self.judge_status()
+        self.check_winner()
 
     def easy(self):
         indices = [i for i, j in enumerate(self.board) if j == 0]
@@ -148,16 +192,7 @@ class TicTacToe:
             self.__init__()
             self.start_menu()
 
-        # self.board_display()
-        # while not self.terminate:
-        #     self.user()
-        #     self.check_winner()
-        #     self.easy()
-        #     self.check_winner()
-
-
 
 
 new_game = TicTacToe()
 new_game.main_loop()
-
