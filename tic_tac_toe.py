@@ -1,4 +1,5 @@
 # project from https://hyperskill.org/curriculum
+# minimax reference: https://github.com/Cledersonbc/tic-tac-toe-minimax
 import random
 
 
@@ -7,6 +8,7 @@ class TicTacToe:
     def __init__(self):
         # using a 1d array to represent the initial board
         self.board =[0]*9 #0 means empty, 1 means X, -1 means O
+        # self.board = [-1,-1,1,1,0,0,0,-1,1]
         self.terminate = False
         self.next_move = 1 # 1 to be replaced with X
         self.winner = None
@@ -67,7 +69,7 @@ class TicTacToe:
 
         for i in range(3): #winner in one column
             if copy_of_board[i] == copy_of_board[i+3] == copy_of_board[i+6] != 0:
-                print('here')
+                # print('here')
                 winner = update_winner(i)
 
         for i in range(0, 7, 3): # winner in one row
@@ -93,6 +95,13 @@ class TicTacToe:
             print("Draw")
             self.stop_while()
 
+    def check_winner_copy(self,board_copy,winner):
+        count = sum([abs(board_copy[i]) for i in range(9)])
+        if winner != None:
+            return winner
+        if count == 9 and winner == None:
+            return 0
+
     def stop_while(self):
         self.terminate = True
 
@@ -107,7 +116,6 @@ class TicTacToe:
         while not self.if_format_wrong(user_input):
             user_input = input("Enter the coordinates: ")
 
-    # def two_in_a_row(self,indices):
     def get_board_copy(self):
         board_copy = []
         for i in self.board:
@@ -141,6 +149,59 @@ class TicTacToe:
         self.board_display()
         self.judge_status()
         self.check_winner()
+
+    def hard(self):
+        board_copy = self.get_board_copy()
+        [m,AI_new_move] = self.minimax(board_copy, self.next_move)
+
+
+        self.board[AI_new_move] = self.next_move
+        self.next_move = -self.next_move
+        print('Making move level "hard"')
+        self.board_display()
+        self.judge_status()
+        self.check_winner()
+
+
+
+    def minimax(self, board_copy, player):
+        # return values:
+        # 1st value: 1 or -1, indicate min or max
+        # 2nd value: best move
+        if player ==  self.next_move:
+            best =  [-999, -1]
+        else:
+            best =  [999, -1]
+
+        winner = self.judge_status(copy_of_board=board_copy)
+        winner = self.check_winner_copy(board_copy, winner)
+
+        if winner == self.next_move:
+            return [1, -1]
+        elif winner == -self.next_move:
+            return [-1,-1]
+        elif winner == 0:
+            return [0,-1]
+
+        indices_0 = [i for i, j in enumerate(board_copy) if j == 0]
+        for i in indices_0:
+            board_copy[i] = player
+            score = self.minimax(board_copy,-player)
+            board_copy[i] = 0
+            score[1] = i
+            if player == self.next_move:
+                if score[0]>best[0]:
+                    best = score
+            else:
+                if score[0]<best[0]:
+                    best = score
+        return best
+
+
+
+
+
+
 
     def easy(self):
         indices = [i for i, j in enumerate(self.board) if j == 0]
@@ -196,3 +257,4 @@ class TicTacToe:
 
 new_game = TicTacToe()
 new_game.main_loop()
+
